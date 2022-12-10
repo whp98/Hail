@@ -21,9 +21,10 @@ android {
         versionName = version.getProperty("versionName")
         resourceConfigurations += arrayOf("en", "es", "it", "ja-rJP", "ru", "zh-rCN", "zh-rTW")
     }
-    signingConfigs {
-        create("release") {
-            storeFile = keyStoreFile
+    val signing = if (file("../signing.properties").exists()) {
+        signingConfigs.create("release") {
+            val props = Properties().apply { load(file("../signing.properties").reader()) }
+            storeFile = file(props.getProperty("storeFile"))
             storePassword = props.getProperty("storePassword")
             keyAlias = props.getProperty("keyAlias")
             keyPassword = props.getProperty("keyPassword")
@@ -81,4 +82,5 @@ dependencies {
     implementation("dev.rikka.shizuku:provider:12.2.0")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.5.0")
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
+    implementation("com.belerweb:pinyin4j:2.5.1")
 }

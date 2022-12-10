@@ -15,12 +15,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.aistra.hail.R
-import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailData
 import com.aistra.hail.utils.*
 import kotlinx.coroutines.Job
-import net.sourceforge.pinyin4j.PinyinHelper
 import java.util.*
 
 object AppsAdapter : ListAdapter<PackageInfo, AppsAdapter.ViewHolder>(
@@ -89,7 +87,7 @@ object AppsAdapter : ListAdapter<PackageInfo, AppsAdapter.ViewHolder>(
         val frozen = AppManager.isAppFrozen(pkg)
         holder.itemView.run {
             setOnClickListener { onItemClickListener.onItemClick(info) }
-            setOnLongClickListener { onItemLongClickListener.onItemLongClick(AppInfo(pkg,true,0)) }
+            setOnLongClickListener { onItemLongClickListener.onItemLongClick(pkg) }
             findViewById<ImageView>(R.id.app_icon).run {
                 loadIconJob = AppIconCache.loadIconBitmapAsync(
                     context,
@@ -129,7 +127,7 @@ object AppsAdapter : ListAdapter<PackageInfo, AppsAdapter.ViewHolder>(
     }
 
     interface OnItemLongClickListener {
-        fun onItemLongClick(info: AppInfo): Boolean
+        fun onItemLongClick(packageName: String): Boolean
     }
 
     interface OnItemCheckedChangeListener {
