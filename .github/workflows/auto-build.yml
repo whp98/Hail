@@ -36,7 +36,8 @@ jobs:
             const str=process.env.GITHUB_REF;
             const time = parseInt(new Date().getTime()/1000);
             const tag = str.substring(str.indexOf("v"));
-            const res = `versionCode=${time}${os.EOL}versionName=${tag}${os.EOL}`;
+            const res = `versionCode=${time}
+            versionName=${tag}`;
             return res;
           result-encoding: string
       - name: version file overwrite
