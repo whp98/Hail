@@ -29,16 +29,16 @@ jobs:
           path: androidSign # 仓库的根目录名
       # 使用tag号刷新version
       - name: Get Version File Content
-          uses: actions/github-script@v3
-          id: get-version-file-content
-          with:
-            script: |
-              const str=process.env.GITHUB_REF;
-              const time = parseInt(new Date().getTime()/1000);
-              const tag = str.substring(str.indexOf("v"));
-              const res = `versionCode=${time}${os.EOL}versionName=${tag}${os.EOL}`;
-              return res;
-            result-encoding: string
+        uses: actions/github-script@v3
+        id: get-version-file-content
+        with:
+          script: |
+            const str=process.env.GITHUB_REF;
+            const time = parseInt(new Date().getTime()/1000);
+            const tag = str.substring(str.indexOf("v"));
+            const res = `versionCode=${time}${os.EOL}versionName=${tag}${os.EOL}`;
+            return res;
+          result-encoding: string
       - name: version file overwrite
         run: echo "${{steps.get-version-file-content.outputs.result}}" > ./version.properties
       # 打包release
