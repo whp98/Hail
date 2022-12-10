@@ -5,9 +5,10 @@ plugins {
     kotlin("android")
 }
 val version = Properties().apply { load(file("../version.properties").reader()) }
+val signFolder = "../androidSign/androidSign/"
 val props =
-    Properties().apply { load(file("../androidSign/androidSign/signing.properties").reader()) }
-val keyStoreFile = file("../androidSign/androidSign/" + props.getProperty("storeFile"))
+    Properties().apply { load(file(signFolder + "signing.properties").reader()) }
+val keyStoreFile = file(signFolder + props.getProperty("storeFile"))
 android {
     namespace = "com.aistra.hail"
     compileSdk = 33
@@ -21,10 +22,11 @@ android {
         versionName = version.getProperty("versionName")
         resourceConfigurations += arrayOf("en", "es", "it", "ja-rJP", "ru", "zh-rCN", "zh-rTW")
     }
-    val signing = if (file("../signing.properties").exists()) {
+    val signing = if (file(signFolder + "signing.properties").exists()) {
         signingConfigs.create("release") {
-            val props = Properties().apply { load(file("../signing.properties").reader()) }
-            storeFile = file(props.getProperty("storeFile"))
+            val props =
+                Properties().apply { load(file(signFolder + "signing.properties").reader()) }
+            storeFile = file(signFolder + props.getProperty("storeFile"))
             storePassword = props.getProperty("storePassword")
             keyAlias = props.getProperty("keyAlias")
             keyPassword = props.getProperty("keyPassword")
