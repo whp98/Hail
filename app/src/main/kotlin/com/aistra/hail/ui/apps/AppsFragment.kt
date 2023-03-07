@@ -52,67 +52,67 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
         AppsAdapter.updateCurrentList(refreshLayout)
     }
 
-    override fun onItemClick(info: PackageInfo) {
+    override fun onItemClick(buttonView: CompoundButton) {
+        buttonView.callOnClick()
+    }
+
+    override fun onItemLongClick(info: PackageInfo): Boolean = true.also {
         val name = info.applicationInfo.loadLabel(app.packageManager)
         val pkg = info.packageName
-        val canUninstall = HPackages.canUninstall(pkg)
         MaterialAlertDialogBuilder(activity).setTitle(name)
-            .setItems(resources.getStringArray(R.array.apps_action_entries).toMutableList().filter {
-                it != getString(R.string.action_uninstall) || canUninstall
-            }.toTypedArray()) { _, which ->
+            .setItems(resources.getStringArray(R.array.apps_action_entries)) { _, which ->
                 when (which) {
                     0 -> HUI.startActivity(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        HPackages.packageUri(pkg)
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS, HPackages.packageUri(pkg)
                     )
                     1 -> {
+                        HUI.copyText(pkg)
+                        HUI.showToast(R.string.msg_text_copied, pkg)
+                    }
+                    2 -> {
                         val target = "${HFiles.DIR_OUTPUT}/$name-${info.versionName}-${
                             PackageInfoCompat.getLongVersionCode(info)
                         }.apk"
                         HUI.showToast(
-                            if (HFiles.copy(info.applicationInfo.sourceDir, target))
-                                R.string.msg_extract_apk
-                            else R.string.operation_failed,
-                            target, true
+                            if (HFiles.copy(
+                                    info.applicationInfo.sourceDir, target
+                                )
+                            ) R.string.msg_extract_apk
+                            else R.string.operation_failed, target, true
                         )
                     }
-                    2 -> when {
+                    3 -> when {
                         pkg == app.packageName -> {
                             when {
-                                HPolicy.isDeviceOwnerActive ->
-                                    MaterialAlertDialogBuilder(activity).setTitle(R.string.title_remove_do)
-                                        .setMessage(R.string.msg_remove_do)
-                                        .setPositiveButton(android.R.string.ok) { _, _ ->
-                                            HPolicy.setOrganizationName()
-                                            HPolicy.clearDeviceOwnerApp()
-                                            AppManager.uninstallApp(pkg)
-                                        }
-                                        .setNegativeButton(android.R.string.cancel, null)
-                                        .create().show()
+                                HPolicy.isDeviceOwnerActive -> MaterialAlertDialogBuilder(activity).setTitle(
+                                    R.string.title_remove_owner
+                                ).setMessage(R.string.msg_remove_owner)
+                                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                                        HPolicy.setOrganizationName()
+                                        HPolicy.clearDeviceOwnerApp()
+                                        uninstallDialog(name, pkg)
+                                    }.setNegativeButton(android.R.string.cancel, null).show()
                                 HPolicy.isAdminActive -> {
                                     HPolicy.removeActiveAdmin()
-                                    AppManager.uninstallApp(pkg)
+                                    uninstallDialog(name, pkg)
                                 }
-                                else -> AppManager.uninstallApp(pkg)
+                                else -> uninstallDialog(name, pkg)
                             }
                         }
-                        HailData.workingMode == HailData.MODE_DEFAULT ->
-                            AppManager.uninstallApp(pkg)
-                        else -> MaterialAlertDialogBuilder(activity).setTitle(name)
-                            .setMessage(R.string.msg_uninstall)
-                            .setPositiveButton(android.R.string.ok) { _, _ ->
-                                AppManager.uninstallApp(pkg)
-                            }
-                            .setNegativeButton(android.R.string.cancel, null)
-                            .create().show()
+                        HailData.workingMode == HailData.MODE_DEFAULT -> AppManager.uninstallApp(pkg)
+                        else -> uninstallDialog(name, pkg)
                     }
                 }
-            }.create().show()
+            }.show()
     }
 
-    override fun onItemLongClick(packageName: String): Boolean = true.also {
-        HUI.copyText(packageName)
-        HUI.showToast(R.string.msg_text_copied, packageName)
+    private fun uninstallDialog(name: CharSequence, pkg: String) {
+        MaterialAlertDialogBuilder(activity).setTitle(name).setMessage(R.string.msg_uninstall)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                if (AppManager.uninstallApp(pkg)) AppsAdapter.updateCurrentList(
+                    refreshLayout
+                )
+            }.setNegativeButton(android.R.string.cancel, null).show()
     }
 
     override fun onItemCheckedChange(
@@ -147,8 +147,9 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
                 else -> R.id.sort_by_name
             }
         ).isChecked = true
-        menu.findItem(R.id.filter_user_apps).isChecked = HailData.filterUserApps
-        menu.findItem(R.id.filter_system_apps).isChecked = HailData.filterSystemApps
+        menu.findItem(
+            if (HailData.filterSystemApps) R.id.filter_system_apps else R.id.filter_user_apps
+        ).isChecked = true
         menu.findItem(R.id.filter_frozen_apps).isChecked = HailData.filterFrozenApps
         menu.findItem(R.id.filter_unfrozen_apps).isChecked = HailData.filterUnfrozenApps
     }
@@ -173,8 +174,22 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
     }
 
     private fun changeAppsFilter(filter: String, item: MenuItem) {
-        item.isChecked = !item.isChecked
-        HailData.changeAppsFilter(filter, item.isChecked)
+        when (item.itemId) {
+            R.id.filter_user_apps -> {
+                item.isChecked = true
+                HailData.changeAppsFilter(filter, item.isChecked)
+                HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, false)
+            }
+            R.id.filter_system_apps -> {
+                item.isChecked = true
+                HailData.changeAppsFilter(filter, item.isChecked)
+                HailData.changeAppsFilter(HailData.FILTER_USER_APPS, false)
+            }
+            else -> {
+                item.isChecked = !item.isChecked
+                HailData.changeAppsFilter(filter, item.isChecked)
+            }
+        }
         AppsAdapter.updateCurrentList(refreshLayout)
     }
 

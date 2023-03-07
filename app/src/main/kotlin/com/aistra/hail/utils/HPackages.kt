@@ -10,6 +10,8 @@ object HPackages {
     @SuppressLint("InlinedApi")
     private const val MATCH_UNINSTALLED = PackageManager.MATCH_UNINSTALLED_PACKAGES
 
+    val myUserId get() = android.os.Process.myUserHandle().hashCode()
+
     fun packageUri(packageName: String) = "package:$packageName"
 
     fun getInstalledPackages(flags: Int = MATCH_UNINSTALLED): List<PackageInfo> =
@@ -22,8 +24,7 @@ object HPackages {
 
     fun getPackageInfoOrNull(packageName: String, flags: Int = MATCH_UNINSTALLED) = try {
         if (HTarget.T) HailApp.app.packageManager.getPackageInfo(
-            packageName,
-            PackageManager.PackageInfoFlags.of(flags.toLong())
+            packageName, PackageManager.PackageInfoFlags.of(flags.toLong())
         )
         else HailApp.app.packageManager.getPackageInfo(packageName, flags)
     } catch (t: Throwable) {
@@ -36,12 +37,17 @@ object HPackages {
     fun isAppDisabled(packageName: String): Boolean =
         getApplicationInfoOrNull(packageName)?.enabled?.not() ?: false
 
-    fun isAppSuspended(packageName: String): Boolean = try {
-        HailApp.app.packageManager.isPackageSuspended(packageName)
-    } catch (t: Throwable) {
-        false
-    }
+    fun isAppSuspended(packageName: String): Boolean = getPackageInfoOrNull(packageName)?.let {
+        val pm = HailApp.app.packageManager
+        when {
+            HTarget.Q -> pm.isPackageSuspended(packageName)
+            HTarget.N -> pm::class.java.getMethod(
+                "isPackageSuspendedForUser", String::class.java, Int::class.java
+            ).invoke(pm, packageName, myUserId) as Boolean
+            else -> false
+        }
+    } ?: false
 
-    fun canUninstall(packageName: String): Boolean =
+    fun canUninstallNormally(packageName: String): Boolean =
         getApplicationInfoOrNull(packageName)?.sourceDir?.startsWith("/data") ?: false
 }

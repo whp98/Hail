@@ -24,34 +24,31 @@
         <item>@string/action_copy_packagename</item>
         <item>@string/action_unfreeze_remove_home</item>
     </string-array>
-    <string-array name="create_shortcut_entries">
-        <item>@string/action_freeze_all</item>
-        <item>@string/action_unfreeze_all</item>
-        <item>@string/action_lock</item>
-        <item>@string/action_lock_freeze</item>
-    </string-array>
     <string-array name="apps_action_entries">
         <item>@string/action_details</item>
+        <item>@string/action_export_clipboard</item>
         <item>@string/action_extract_apk</item>
         <item>@string/action_uninstall</item>
     </string-array>
     <string-array name="working_mode_entries">
         <item>@string/mode_default</item>
-        <item>@string/mode_do_hide</item>
-        <item>@string/mode_do_suspend</item>
+        <item>@string/mode_shizuku_disable</item>
+        <item>@string/mode_shizuku_hide</item>
+        <item>@string/mode_shizuku_suspend</item>
         <item>@string/mode_su_disable</item>
         <item>@string/mode_su_suspend</item>
-        <item>@string/mode_shizuku_disable</item>
-        <item>@string/mode_shizuku_suspend</item>
+        <item>@string/mode_owner_hide</item>
+        <item>@string/mode_owner_suspend</item>
     </string-array>
     <string-array name="working_mode_values">
         <item>default</item>
-        <item>do_hide</item>
-        <item>do_suspend</item>
+        <item>shizuku_disable</item>
+        <item>shizuku_hide</item>
+        <item>shizuku_suspend</item>
         <item>su_disable</item>
         <item>su_suspend</item>
-        <item>shizuku_disable</item>
-        <item>shizuku_suspend</item>
+        <item>owner_hide</item>
+        <item>owner_suspend</item>
     </string-array>
     <string-array name="donate_payment_entries">
         <item>@string/donate_alipay</item>
@@ -59,5 +56,49 @@
         <item>@string/donate_bilibili</item>
         <item>@string/donate_liberapay</item>
         <item>@string/donate_paypal</item>
+    </string-array>
+    <string-array name="pin_shortcut_entries">
+        <item>@string/action_freeze_tag</item>
+        <item>@string/action_unfreeze_tag</item>
+        <item>@string/action_freeze_all</item>
+        <item>@string/action_unfreeze_all</item>
+        <item>@string/action_freeze_non_whitelisted</item>
+        <item>@string/action_lock</item>
+        <item>@string/action_lock_freeze</item>
+    </string-array>
+    <string-array name="tile_action_entries">
+        <item>@string/action_freeze_all</item>
+        <item>@string/action_unfreeze_all</item>
+        <item>@string/action_freeze_non_whitelisted</item>
+        <item>@string/action_lock</item>
+        <item>@string/action_lock_freeze</item>
+    </string-array>
+    <string-array name="tile_action_values">
+        <item>freeze_all</item>
+        <item>unfreeze_all</item>
+        <item>freeze_non_whitelisted</item>
+        <item>lock</item>
+        <item>lock_freeze</item>
+    </string-array>
+    <string-array name="dynamic_shortcut_action_entries">
+        <item>@string/action_none</item>
+        <item>@string/action_freeze_all</item>
+        <item>@string/action_unfreeze_all</item>
+        <item>@string/action_freeze_non_whitelisted</item>
+        <item>@string/action_lock</item>
+        <item>@string/action_lock_freeze</item>
+    </string-array>
+    <string-array name="dynamic_shortcut_action_values">
+        <item>none</item>
+        <item>freeze_all</item>
+        <item>unfreeze_all</item>
+        <item>freeze_non_whitelisted</item>
+        <item>lock</item>
+        <item>lock_freeze</item>
+    </string-array>
+    <string-array name="api_redirect_action_entries">
+        <item>@string/action_launch</item>
+        <item>@string/action_freeze</item>
+        <item>@string/action_unfreeze</item>
     </string-array>
 </resources>

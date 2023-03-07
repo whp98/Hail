@@ -45,13 +45,13 @@
     <string name="msg_uninstall">このアプリをアンインストールしますか？</string>
     <string name="working_mode">動作モード</string>
     <string name="mode_default">アイドル</string>
-    <string name="mode_do_hide">デバイス管理者 - 非表示にする</string>
+    <string name="mode_owner_hide">デバイス管理者 - 非表示にする</string>
     <string name="mode_su_disable">スーパーユーザー - 凍結</string>
     <string name="mode_shizuku_disable">Shizuku - 凍結</string>
-    <string name="title_set_do">デバイス管理者に設定</string>
-    <string name="msg_set_do">adb で以下のコマンドを実行してください：\n%s</string>
-    <string name="title_remove_do">デバイス管理者を削除</string>
-    <string name="msg_remove_do">「Hail」をデバイス所有者から削除します。削除後、もう一度設定することが困難な場合があります。\n 非表示のアプリは削除後も非表示のままになります。削除する前に重要なアプリは非表示を解除してください。</string>
+    <string name="title_set_owner">デバイス管理者に設定</string>
+    <string name="msg_set_owner">adb で以下のコマンドを実行してください：\n%s</string>
+    <string name="title_remove_owner">デバイス管理者を削除</string>
+    <string name="msg_remove_owner">「Hail」をデバイス所有者から削除します。削除後、もう一度設定することが困難な場合があります。\n 非表示のアプリは削除後も非表示のままになります。削除する前に重要なアプリは非表示を解除してください。</string>
     <string name="tap_to_select">タップして複数選択</string>
     <string name="filter_by">フィルター</string>
     <string name="filter_user_apps">ユーザー</string>
@@ -94,8 +94,8 @@
     <plurals name="msg_deferred_task">
         <item quantity="other">%1$d 分あと%2$s：%3$s</item>
     </plurals>
-    <string name="action_clear_dynamic_shortcut">全ての動的ショートカットを削除</string>
-    <string name="tile_lock">タイルアクション</string>
+    <string name="action_clear_dynamic_shortcuts">全ての動的ショートカットを削除</string>
+    <string name="tile_action">タイルアクション</string>
     <string name="auto_freeze">自動凍結</string>
     <string name="auto_freeze_notification_title">自動凍結を待機中</string>
     <string name="auto_freeze_after_lock">画面ロック後</string>
@@ -118,9 +118,17 @@
     <string name="auto_freeze_delay">凍結遅延時間（分）</string>
     <string name="action_whitelist">ホワイトリストへ追加</string>
     <string name="action_remove_whitelist">ホワイトリストから削除</string>
-    <string name="mode_do_suspend">デバイス所有者 - サスペンド</string>
+    <string name="mode_owner_suspend">デバイス所有者 - サスペンド</string>
     <string name="mode_su_suspend">スーパーユーザー - サスペンド</string>
     <string name="mode_shizuku_suspend">Shizuku - サスペンド</string>
     <string name="action_unfreeze_remove_home">凍結を解除し、Hailのホームから削除する</string>
     <string name="action_freeze_non_whitelisted">Freeze non-whitelisted</string>
+    <string name="title_shortcuts">ショートカット</string>
+    <string name="msg_guide">Before freezing applications, please select a working mode in the settings.</string>
+    <string name="dynamic_shortcut_action">Dynamic shortcut action</string>
+    <string name="action_none">None</string>
+    <string name="mode_shizuku_hide">Shizuku - 非表示にする</string>
+    <string name="action_freeze_tag">Freeze tag</string>
+    <string name="action_unfreeze_tag">Unfreeze tag</string>
+    <string name="icon_pack">Icon pack</string>
 </resources>

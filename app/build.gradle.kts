@@ -12,7 +12,6 @@ val keyStoreFile = file(signFolder + props.getProperty("storeFile"))
 android {
     namespace = "com.aistra.hail"
     compileSdk = 33
-    buildToolsVersion = "33.0.0"
 
     defaultConfig {
         applicationId = "com.aistra.hail"
@@ -20,7 +19,6 @@ android {
         targetSdk = 33
         versionCode = version.getProperty("versionCode").toInt()
         versionName = version.getProperty("versionName")
-        resourceConfigurations += arrayOf("en", "es", "it", "ja-rJP", "ru", "zh-rCN", "zh-rTW")
     }
     val signing = if (file(signFolder + "signing.properties").exists()) {
         signingConfigs.create("release") {
@@ -41,8 +39,7 @@ android {
             isShrinkResources = true
             signingConfig = signing
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -52,12 +49,12 @@ android {
                 ?.outputFileName = "Hail.apk"
         }
     }
+    compileOptions {
+        sourceCompatibility(JavaVersion.VERSION_1_8)
+        targetCompatibility(JavaVersion.VERSION_1_8)
+    }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
     buildFeatures {
         viewBinding = true
@@ -80,8 +77,8 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation("com.google.android.material:material:1.6.1")
-    implementation("dev.rikka.shizuku:api:12.2.0")
-    implementation("dev.rikka.shizuku:provider:12.2.0")
+    implementation("dev.rikka.shizuku:api:13.1.0")
+    implementation("dev.rikka.shizuku:provider:13.1.0")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.5.0")
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
     implementation("com.belerweb:pinyin4j:2.5.1")

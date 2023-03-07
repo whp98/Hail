@@ -8,7 +8,6 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.widget.ImageView
 import androidx.collection.LruCache
-import com.aistra.hail.HailApp
 import com.aistra.hail.R
 import com.aistra.hail.app.HailData
 import kotlinx.coroutines.*
@@ -72,6 +71,8 @@ object AppIconCache : CoroutineScope {
         }
     }
 
+    fun clear() = lruCache.evictAll()
+
     @SuppressLint("NewApi")
     fun getOrLoadBitmap(context: Context, info: ApplicationInfo, userId: Int, size: Int): Bitmap {
         val cachedBitmap = get(info.packageName, userId, size)
@@ -84,7 +85,7 @@ object AppIconCache : CoroutineScope {
             loader = AppIconLoader(size, shrinkNonAdaptiveIcons, context)
             appIconLoaders[size] = loader
         }
-        val bitmap = loader.loadIcon(info, false)
+        val bitmap = IconPack.loadIcon(info.packageName) ?: loader.loadIcon(info, false)
         put(info.packageName, userId, size, bitmap)
         return bitmap
     }
@@ -92,8 +93,10 @@ object AppIconCache : CoroutineScope {
     @JvmStatic
     fun loadIconBitmapAsync(
         context: Context,
-        info: ApplicationInfo, userId: Int,
-        view: ImageView, setColorFilter: Boolean = false
+        info: ApplicationInfo,
+        userId: Int,
+        view: ImageView,
+        setColorFilter: Boolean = false
     ): Job {
         return launch {
             val size = view.measuredWidth.let {
@@ -124,11 +127,7 @@ object AppIconCache : CoroutineScope {
             if (bitmap != null) {
                 view.setImageBitmap(bitmap)
             } else {
-                if (HTarget.O) {
-                    view.setImageDrawable(HailApp.app.packageManager.defaultActivityIcon)
-                } else {
-                    view.setImageDrawable(null)
-                }
+                view.setImageDrawable(if (HTarget.O) context.packageManager.defaultActivityIcon else null)
             }
             view.colorFilter = if (setColorFilter) cf else null
         }

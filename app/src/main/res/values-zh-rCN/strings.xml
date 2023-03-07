@@ -45,13 +45,13 @@
     <string name="msg_uninstall">要卸载此应用吗？</string>
     <string name="working_mode">工作模式</string>
     <string name="mode_default">空闲</string>
-    <string name="mode_do_hide">设备所有者 - 隐藏</string>
+    <string name="mode_owner_hide">设备所有者 - 隐藏</string>
     <string name="mode_su_disable">超级用户 - 停用</string>
     <string name="mode_shizuku_disable">Shizuku - 停用</string>
-    <string name="title_set_do">设置设备所有者</string>
-    <string name="msg_set_do">通过 adb 发出命令：\n%s</string>
-    <string name="title_remove_do">移除设备所有者</string>
-    <string name="msg_remove_do">将移除雹的设备所有者，移除后可能难以再次设置。\n已隐藏的应用在移除后仍会隐藏，请确保您已将重要的应用取消隐藏。</string>
+    <string name="title_set_owner">设置设备所有者</string>
+    <string name="msg_set_owner">通过 adb 发出命令：\n%s</string>
+    <string name="title_remove_owner">移除设备所有者</string>
+    <string name="msg_remove_owner">将移除雹的设备所有者，移除后可能难以再次设置。\n已隐藏的应用在移除后仍会隐藏，请确保您已将重要的应用取消隐藏。</string>
     <string name="tap_to_select">点按多选</string>
     <string name="filter_by">筛选</string>
     <string name="filter_user_apps">用户</string>
@@ -94,8 +94,8 @@
     <plurals name="msg_deferred_task">
         <item quantity="other">%1$d 分钟后%2$s：%3$s</item>
     </plurals>
-    <string name="action_clear_dynamic_shortcut">清除主屏幕动态</string>
-    <string name="tile_lock">图块操作</string>
+    <string name="action_clear_dynamic_shortcuts">清除主屏幕动态</string>
+    <string name="tile_action">图块操作</string>
     <string name="auto_freeze">自动冻结</string>
     <string name="auto_freeze_notification_title">自动冻结服务正在运行</string>
     <string name="auto_freeze_after_lock">锁屏后</string>
@@ -118,8 +118,17 @@
     <string name="action_export_all">全部导出</string>
     <string name="skip_notifying_app">跳过通知中应用</string>
     <string name="auto_freeze_delay">冻结延时（分钟）</string>
-    <string name="mode_do_suspend">设备所有者 - 暂停</string>
+    <string name="mode_owner_suspend">设备所有者 - 暂停</string>
     <string name="mode_su_suspend">超级用户 - 暂停</string>
     <string name="mode_shizuku_suspend">Shizuku - 暂停</string>
     <string name="action_freeze_non_whitelisted">冻结非白名单</string>
+    <string name="title_shortcuts">快捷方式</string>
+    <string name="msg_guide">在冻结应用前，请先在设置中选择一个工作模式。</string>
+    <string name="dynamic_shortcut_action">动态快捷方式操作</string>
+    <string name="action_none">无</string>
+    <string name="mode_shizuku_hide">Shizuku - 隐藏</string>
+    <string name="action_freeze_tag">标签冻结</string>
+    <string name="action_unfreeze_tag">标签解冻</string>
+    <string name="icon_pack">图标包</string>
+    <string name="action_select_all">全选</string>
 </resources>

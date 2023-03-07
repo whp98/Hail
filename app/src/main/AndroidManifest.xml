@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-sdk tools:overrideLibrary="rikka.shizuku.api" />
+
     <uses-permission
         android:name="com.android.launcher.permission.INSTALL_SHORTCUT"
         android:maxSdkVersion="25" />
@@ -15,11 +17,11 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".HailApp"
         android:allowBackup="true"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
@@ -44,12 +46,15 @@
             android:launchMode="singleInstance"
             android:theme="@style/Theme.Hail.Dialog">
             <intent-filter>
+                <action android:name="android.intent.action.SHOW_APP_INFO" />
                 <action android:name="${applicationId}.action.LAUNCH" />
                 <action android:name="${applicationId}.action.FREEZE" />
                 <action android:name="${applicationId}.action.UNFREEZE" />
+                <action android:name="${applicationId}.action.FREEZE_TAG" />
+                <action android:name="${applicationId}.action.UNFREEZE_TAG" />
                 <action android:name="${applicationId}.action.FREEZE_ALL" />
-                <action android:name="${applicationId}.action.FREEZE_NON_WHITELISTED" />
                 <action android:name="${applicationId}.action.UNFREEZE_ALL" />
+                <action android:name="${applicationId}.action.FREEZE_NON_WHITELISTED" />
                 <action android:name="${applicationId}.action.LOCK" />
                 <action android:name="${applicationId}.action.LOCK_FREEZE" />
 
@@ -80,17 +85,19 @@
             android:name=".receiver.ScreenOffReceiver"
             android:exported="false" />
         <receiver
-            android:name=".receiver.BootReceiver"
-            android:exported="true">
+            android:name=".receiver.UnsuspendedReceiver"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                <action android:name="android.intent.action.PACKAGE_UNSUSPENDED_MANUALLY" />
             </intent-filter>
         </receiver>
+
 
         <service
             android:name=".services.QSTileService"
             android:exported="true"
             android:icon="@drawable/ic_round_frozen"
+            android:label="@string/tile_action"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -99,6 +106,7 @@
         <service
             android:name=".services.AutoFreezeService"
             android:exported="true"
+            android:label="@string/auto_freeze"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />

@@ -16,11 +16,13 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.aistra.hail.R
+import com.aistra.hail.app.HailData
 import com.aistra.hail.app.HailData.biometricLogin
 import com.aistra.hail.databinding.ActivityMainBinding
 import com.aistra.hail.ui.HailActivity
 import com.aistra.hail.utils.HUI
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 class MainActivity : HailActivity(), NavController.OnDestinationChangedListener {
@@ -31,25 +33,32 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         initView()
-        if (!biometricLogin) return
+        if (!biometricLogin) {
+            showGuide()
+            return
+        }
         val view = findViewById<View>(R.id.drawer_layout)
         view.visibility = View.INVISIBLE
-        val biometricPrompt = BiometricPrompt(this, ContextCompat.getMainExecutor(this),
+        val biometricPrompt = BiometricPrompt(this,
+            ContextCompat.getMainExecutor(this),
             object : BiometricPrompt.AuthenticationCallback() {
                 private fun unlock() {
                     view.visibility = View.VISIBLE
-                    findViewById<View>(R.id.toolbar)
-                        .setBackgroundColor(MaterialColors.getColor(view, R.attr.colorPrimaryDark))
+                    findViewById<View>(R.id.toolbar).setBackgroundColor(
+                        MaterialColors.getColor(
+                            view, R.attr.colorPrimaryDark
+                        )
+                    )
+                    showGuide()
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
                     when (errorCode) {
-                        BiometricPrompt.ERROR_NO_BIOMETRICS, BiometricPrompt.ERROR_HW_NOT_PRESENT ->
-                            unlock()
+                        BiometricPrompt.ERROR_NO_BIOMETRICS, BiometricPrompt.ERROR_HW_NOT_PRESENT -> unlock()
+                        BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_USER_CANCELED -> finishAndRemoveTask()
                         else -> {
-                            if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON)
-                                HUI.showToast(errString)
+                            HUI.showToast(errString)
                             finishAndRemoveTask()
                         }
                     }
@@ -60,11 +69,10 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
                     unlock()
                 }
             })
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(getString(R.string.action_biometric))
-            .setSubtitle(getString(R.string.msg_biometric))
-            .setNegativeButtonText(getString(android.R.string.cancel))
-            .build()
+        val promptInfo =
+            BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.action_biometric))
+                .setSubtitle(getString(R.string.msg_biometric))
+                .setNegativeButtonText(getString(android.R.string.cancel)).build()
         biometricPrompt.authenticate(promptInfo)
     }
 
@@ -87,17 +95,22 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
                 view.updatePadding(top = insets.top, right = insets.right + cutoutInsets.right)
                 windowInsets
             }
-            if (bottomNav != null)
-                ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
-                    val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                    view.updatePadding(
-                        left = insets.left,
-                        right = insets.right,
-                        bottom = insets.bottom
-                    )
-                    windowInsets
-                }
+            if (bottomNav != null) ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
+                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                view.updatePadding(
+                    left = insets.left, right = insets.right, bottom = insets.bottom
+                )
+                windowInsets
+            }
         }
+    }
+
+    private fun showGuide() {
+        if (HailData.guideVersion == HailData.GUIDE_VERSION) return
+        if (HailData.workingMode != HailData.MODE_DEFAULT) HailData.setGuideVersion()
+        else MaterialAlertDialogBuilder(this).setMessage(R.string.msg_guide)
+            .setPositiveButton(android.R.string.ok) { _, _ -> HailData.setGuideVersion() }
+            .setOnDismissListener { HailData.setGuideVersion() }.show()
     }
 
     override fun onStop() {
@@ -106,8 +119,7 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
     }
 
     override fun onSupportNavigateUp(): Boolean =
-        findNavController(R.id.nav_host_fragment_content_main).navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+        findNavController(R.id.nav_host_fragment_content_main).navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
 
 
     override fun onDestinationChanged(

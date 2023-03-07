@@ -24,23 +24,38 @@ object HailData {
     const val URL_LIBERAPAY = "https://liberapay.com/aistra0528"
     const val URL_PAYPAL = "https://www.paypal.me/aistra0528"
     const val URL_REDEEM_CODE = "https://aistra0528.github.io/hail/code"
+    const val URL_TRANSLATE = "https://hosted.weblate.org/engage/hail/"
     const val VERSION = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
     const val KEY_PACKAGE = "package"
     const val KEY_FROZEN = "frozen"
     const val WORKING_MODE = "working_mode"
     const val MODE_DEFAULT = "default"
-    const val MODE_DO_HIDE = "do_hide"
-    const val MODE_DO_SUSPEND = "do_suspend"
-    const val MODE_SU_DISABLE = "su_disable"
-    const val MODE_SU_SUSPEND = "su_suspend"
-    const val MODE_SHIZUKU_DISABLE = "shizuku_disable"
-    const val MODE_SHIZUKU_SUSPEND = "shizuku_suspend"
+    const val OWNER = "owner_"
+    const val SU = "su_"
+    const val SHIZUKU = "shizuku_"
+    private const val DISABLE = "disable"
+    private const val HIDE = "hide"
+    const val SUSPEND = "suspend"
+    const val MODE_OWNER_HIDE = OWNER + HIDE
+    const val MODE_OWNER_SUSPEND = OWNER + SUSPEND
+    const val MODE_SU_DISABLE = SU + DISABLE
+    const val MODE_SU_SUSPEND = SU + SUSPEND
+    const val MODE_SHIZUKU_DISABLE = SHIZUKU + DISABLE
+    const val MODE_SHIZUKU_HIDE = SHIZUKU + HIDE
+    const val MODE_SHIZUKU_SUSPEND = SHIZUKU + SUSPEND
+    private const val TILE_ACTION = "tile_action"
+    const val DYNAMIC_SHORTCUT_ACTION = "dynamic_shortcut_action"
+    const val ACTION_NONE = "none"
+    const val ACTION_FREEZE_ALL = "freeze_all"
+    const val ACTION_FREEZE_NON_WHITELISTED = "freeze_non_whitelisted"
+    const val ACTION_LOCK = "lock"
+    const val ACTION_LOCK_FREEZE = "lock_freeze"
     private const val SORT_BY = "sort_by"
     const val SORT_NAME = "name"
     const val SORT_INSTALL = "install"
     const val SORT_UPDATE = "update"
     private const val KEY_ID = "id"
-    private const val KEY_TAG = "tag"
+    const val KEY_TAG = "tag"
     private const val KEY_AID = "aid"
     private const val KEY_PINNED = "pinned"
     private const val KEY_WHITELISTED = "whitelisted"
@@ -49,9 +64,9 @@ object HailData {
     const val FILTER_FROZEN_APPS = "filter_frozen_apps"
     const val FILTER_UNFROZEN_APPS = "filter_unfrozen_apps"
     private const val BIOMETRIC_LOGIN = "biometric_login"
+    const val ICON_PACK = "icon_pack"
     private const val GRAYSCALE_ICON = "grayscale_icon"
     private const val COMPACT_ICON = "compact_icon"
-    private const val TILE_LOCK = "tile_lock"
     private const val SYNTHESIZE_ADAPTIVE_ICONS = "synthesize_adaptive_icons"
     const val AUTO_FREEZE_AFTER_LOCK = "auto_freeze_after_lock"
     private const val SKIP_WHILE_CHARGING = "skip_while_charging"
@@ -60,7 +75,7 @@ object HailData {
     private const val AUTO_FREEZE_DELAY = "auto_freeze_delay"
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(HailApp.app)
-    val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)
+    val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)!!
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
     val filterUserApps get() = sp.getBoolean(FILTER_USER_APPS, true)
     val filterSystemApps get() = sp.getBoolean(FILTER_SYSTEM_APPS, false)
@@ -69,13 +84,22 @@ object HailData {
     val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
     val grayscaleIcon get() = sp.getBoolean(GRAYSCALE_ICON, true)
     val compactIcon get() = sp.getBoolean(COMPACT_ICON, false)
-    val tileLock get() = sp.getBoolean(TILE_LOCK, false)
+    val tileAction get() = sp.getString(TILE_ACTION, ACTION_FREEZE_ALL)
+    val dynamicShortcutAction get() = sp.getString(DYNAMIC_SHORTCUT_ACTION, ACTION_NONE)!!
     val synthesizeAdaptiveIcons get() = sp.getBoolean(SYNTHESIZE_ADAPTIVE_ICONS, false)
     val autoFreezeAfterLock get() = sp.getBoolean(AUTO_FREEZE_AFTER_LOCK, false)
     val skipWhileCharging get() = sp.getBoolean(SKIP_WHILE_CHARGING, false)
     val skipForegroundApp get() = sp.getBoolean(SKIP_FOREGROUND_APP, false)
     val skipNotifyingApp get() = sp.getBoolean(SKIP_NOTIFYING_APP, false)
     val autoFreezeDelay get() = sp.getInt(AUTO_FREEZE_DELAY, 0).toLong()
+
+    private const val KEY_GUIDE_VERSION = "guide_version"
+    const val GUIDE_VERSION = 1
+    val guideVersion get() = sp.getInt(KEY_GUIDE_VERSION, 0)
+    fun setGuideVersion() = sp.edit().putInt(KEY_GUIDE_VERSION, GUIDE_VERSION).apply()
+
+    val iconPack get() = sp.getString(ICON_PACK, ACTION_NONE)!!
+    fun setIconPack(packageName: String) = sp.edit().putString(ICON_PACK, packageName).apply()
 
     val isDeviceAid: Boolean get() = sp.getString(KEY_AID, null) == androidId
 
@@ -109,8 +133,7 @@ object HailData {
 
     private fun getCheckedPosition(packageName: String): Int {
         checkedList.forEachIndexed { position, info ->
-            if (info.packageName == packageName)
-                return position
+            if (info.packageName == packageName) return position
         }
         return -1
     }
@@ -128,15 +151,12 @@ object HailData {
     }
 
     fun saveApps() {
-        if (!HFiles.exists(dir))
-            HFiles.createDirectories(dir)
+        if (!HFiles.exists(dir)) HFiles.createDirectories(dir)
         HFiles.write(appsPath, JSONArray().run {
             checkedList.forEach {
                 put(
-                    JSONObject().put(KEY_PACKAGE, it.packageName)
-                        .put(KEY_PINNED, it.pinned)
-                        .put(KEY_TAG, it.tagId)
-                        .put(KEY_WHITELISTED, it.whitelisted)
+                    JSONObject().put(KEY_PACKAGE, it.packageName).put(KEY_PINNED, it.pinned)
+                        .put(KEY_TAG, it.tagId).put(KEY_WHITELISTED, it.whitelisted)
                 )
             }
             toString()
@@ -156,9 +176,17 @@ object HailData {
         }
     }
 
+    fun isTagAvailable(tagName: String): Boolean = getTagPosition(tagName) != -1
+
+    fun getTagPosition(tagName: String): Int {
+        tags.forEachIndexed { position, tag ->
+            if (tag.first == tagName) return position
+        }
+        return -1
+    }
+
     fun saveTags() {
-        if (!HFiles.exists(dir))
-            HFiles.createDirectories(dir)
+        if (!HFiles.exists(dir)) HFiles.createDirectories(dir)
         HFiles.write(tagsPath, JSONArray().run {
             tags.forEach {
                 put(JSONObject().put(KEY_TAG, it.first).put(KEY_ID, it.second))
