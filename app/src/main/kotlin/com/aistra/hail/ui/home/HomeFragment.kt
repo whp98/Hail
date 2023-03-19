@@ -166,8 +166,11 @@ class HomeFragment : MainFragment(), HomeAdapter.OnItemClickListener,
             }.toTypedArray()
         ) { _, which ->
             when (which) {
+                //启动app
                 0 -> launchApp(pkg)
+                //冻结
                 1 -> setListFrozen(!frozen, listOf(info))
+                //延期任务
                 2 -> {
                     val values = resources.getIntArray(R.array.deferred_task_values)
                     val entries = arrayOfNulls<String>(values.size)
@@ -189,17 +192,20 @@ class HomeFragment : MainFragment(), HomeAdapter.OnItemClickListener,
                             ).setAction(R.string.action_undo) { HWork.cancelWork(pkg) }.show()
                         }.setNegativeButton(android.R.string.cancel, null).show()
                 }
+                //置顶
                 3 -> {
                     info.pinned = !info.pinned
                     HailData.saveApps()
                     updateCurrentList()
                 }
+                //白名单
                 4 -> {
                     info.whitelisted = !info.whitelisted
                     HailData.saveApps()
                     info.selected = !info.selected // Just make contents not same
                     updateCurrentList()
                 }
+                //设置标签
                 5 -> {
                     var checked = -1
                     for (i in HailData.tags.indices) {
@@ -222,11 +228,15 @@ class HomeFragment : MainFragment(), HomeAdapter.OnItemClickListener,
                             showTagDialog(listOf(info))
                         }.setNegativeButton(android.R.string.cancel, null).show()
                 }
+                //添加到主屏幕
                 6 -> HShortcuts.addPinShortcut(
                     info, pkg, info.name, HailApi.getIntentForPackage(HailApi.ACTION_LAUNCH, pkg)
                 )
+                //导出到剪切板
                 7 -> exportToClipboard(listOf(info))
+                //从首页移除
                 8 -> removeCheckedApp(pkg)
+                //解冻并从首页移除
                 9 -> {
                     setListFrozen(false, listOf(info), false)
                     if (!AppManager.isAppFrozen(pkg)) removeCheckedApp(pkg)
