@@ -29,6 +29,9 @@ object HailApi {
     const val ACTION_FREEZE_NON_WHITELISTED =
         "${BuildConfig.APPLICATION_ID}.action.FREEZE_NON_WHITELISTED"
 
+    /** @since 1.3.0 */
+    const val ACTION_FREEZE_AUTO = "${BuildConfig.APPLICATION_ID}.action.FREEZE_AUTO"
+
     /** @since 0.6.0 */
     const val ACTION_LOCK = "${BuildConfig.APPLICATION_ID}.action.LOCK"
 
@@ -38,6 +41,7 @@ object HailApi {
     fun getIntentForPackage(action: String, packageName: String) =
         Intent(action).putExtra(HailData.KEY_PACKAGE, packageName)
 
-    fun getIntentForTag(action: String, tag: String) =
-        Intent(action).putExtra(HailData.KEY_TAG, tag)
+    fun Intent.addTag(tag: String) = putExtra(HailData.KEY_TAG, tag)
+
+    fun getIntentForTag(action: String, tag: String) = Intent(action).addTag(tag)
 }

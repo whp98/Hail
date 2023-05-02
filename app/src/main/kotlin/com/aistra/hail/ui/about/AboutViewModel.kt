@@ -2,7 +2,6 @@ package com.aistra.hail.ui.about
 
 import android.app.Application
 import android.app.Dialog
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -23,23 +22,20 @@ class AboutViewModel(val app: Application) : AndroidViewModel(app) {
 
     val snack = MutableLiveData<Int>()
 
-    private fun hash(string: String): String = with(StringBuilder()) {
+    private fun hash(string: String): String = buildString {
         MessageDigest.getInstance("SHA-256").digest(string.encodeToByteArray()).forEach {
             val hex = Integer.toHexString(0xff and it.toInt())
             if (hex.length == 1) append(0)
             append(hex)
         }
-        toString()
     }
 
     fun codeCheck(code: String, dialog: Dialog) = viewModelScope.launch {
         dialog.show()
-        val hash = hash(code + app.packageName)
-        val result = HRepository.request("${HailData.URL_REDEEM_CODE}/$hash")
-        dialog.cancel()
-        snack.value = when {
-            result is String && result.isDigitsOnly() -> {
-                when (result.toInt()) {
+        HRepository.request("${HailData.URL_REDEEM_CODE}/${hash(code + app.packageName)}")
+            .onSuccess {
+                snack.value = when (it.toIntOrNull()) {
+                    null -> R.string.msg_network_error
                     0 -> R.string.msg_redeem_expired
                     1 -> {
                         HailData.setAid()
@@ -47,9 +43,10 @@ class AboutViewModel(val app: Application) : AndroidViewModel(app) {
                     }
                     else -> R.string.msg_redeem_invalid
                 }
+            }.onFailure {
+                snack.value = if (it is FileNotFoundException) R.string.msg_redeem_invalid
+                else R.string.msg_network_error
             }
-            result is FileNotFoundException -> R.string.msg_redeem_invalid
-            else -> R.string.msg_network_error
-        }
+        dialog.dismiss()
     }
 }

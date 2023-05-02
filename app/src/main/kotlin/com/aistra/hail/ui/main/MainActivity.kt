@@ -1,12 +1,13 @@
 package com.aistra.hail.ui.main
 
 import android.os.Bundle
-import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -17,37 +18,33 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.aistra.hail.R
 import com.aistra.hail.app.HailData
-import com.aistra.hail.app.HailData.biometricLogin
 import com.aistra.hail.databinding.ActivityMainBinding
-import com.aistra.hail.ui.HailActivity
 import com.aistra.hail.utils.HUI
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
-class MainActivity : HailActivity(), NavController.OnDestinationChangedListener {
+class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedListener {
     lateinit var fab: ExtendedFloatingActionButton
+    private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        initView()
-        if (!biometricLogin) {
+        val binding = initView()
+        if (!HailData.biometricLogin) {
             showGuide()
             return
         }
-        val view = findViewById<View>(R.id.drawer_layout)
-        view.visibility = View.INVISIBLE
+        binding.root.isVisible = false
         val biometricPrompt = BiometricPrompt(this,
             ContextCompat.getMainExecutor(this),
             object : BiometricPrompt.AuthenticationCallback() {
                 private fun unlock() {
-                    view.visibility = View.VISIBLE
-                    findViewById<View>(R.id.toolbar).setBackgroundColor(
-                        MaterialColors.getColor(
-                            view, R.attr.colorPrimaryDark
-                        )
+                    binding.root.isVisible = true
+                    binding.appBarMain.toolbar.setBackgroundColor(
+                        MaterialColors.getColor(binding.root, R.attr.colorPrimaryDark)
                     )
                     showGuide()
                 }
@@ -76,32 +73,30 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
         biometricPrompt.authenticate(promptInfo)
     }
 
-    private fun initView() {
-        with(ActivityMainBinding.inflate(layoutInflater)) {
-            setContentView(root)
-            setSupportActionBar(appBarMain.toolbar)
-            fab = appBarMain.fab
-            val navController = findNavController(R.id.nav_host_fragment_content_main)
-            navController.addOnDestinationChangedListener(this@MainActivity)
-            appBarConfiguration = AppBarConfiguration(
-                setOf(R.id.nav_home, R.id.nav_apps, R.id.nav_settings, R.id.nav_about)
+    private fun initView() = ActivityMainBinding.inflate(layoutInflater).apply {
+        setContentView(root)
+        setSupportActionBar(appBarMain.toolbar)
+        fab = appBarMain.fab
+        navController = findNavController(R.id.nav_host_fragment)
+        navController.addOnDestinationChangedListener(this@MainActivity)
+        appBarConfiguration = AppBarConfiguration.Builder(
+            R.id.nav_home, R.id.nav_apps, R.id.nav_settings, R.id.nav_about
+        ).build()
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        bottomNav?.setupWithNavController(navController)
+        navRail?.setupWithNavController(navController)
+        ViewCompat.setOnApplyWindowInsetsListener(appBarMain.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.updatePadding(top = insets.top, right = insets.right + cutoutInsets.right)
+            windowInsets
+        }
+        if (bottomNav != null) ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(
+                left = insets.left, right = insets.right, bottom = insets.bottom
             )
-            setupActionBarWithNavController(navController, appBarConfiguration)
-            bottomNav?.setupWithNavController(navController)
-            navRail?.setupWithNavController(navController)
-            ViewCompat.setOnApplyWindowInsetsListener(appBarMain.root) { view, windowInsets ->
-                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-                view.updatePadding(top = insets.top, right = insets.right + cutoutInsets.right)
-                windowInsets
-            }
-            if (bottomNav != null) ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
-                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.updatePadding(
-                    left = insets.left, right = insets.right, bottom = insets.bottom
-                )
-                windowInsets
-            }
+            windowInsets
         }
     }
 
@@ -115,22 +110,19 @@ class MainActivity : HailActivity(), NavController.OnDestinationChangedListener 
 
     override fun onStop() {
         super.onStop()
-        if (biometricLogin) finishAndRemoveTask()
+        if (HailData.biometricLogin) finishAndRemoveTask()
     }
 
     override fun onSupportNavigateUp(): Boolean =
-        findNavController(R.id.nav_host_fragment_content_main).navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+        navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
 
 
     override fun onDestinationChanged(
-        controller: NavController, destination: NavDestination, arguments: Bundle?
-    ) = fab.run {
-        if (destination.id != R.id.nav_home) {
-            isEnabled = false
-            hide()
-        } else {
-            isEnabled = true
-            show()
-        }
+        controller: NavController,
+        destination: NavDestination,
+        arguments: Bundle?
+    ) {
+        fab.tag = destination.id == R.id.nav_home
+        if (fab.tag == true) fab.show() else fab.hide()
     }
 }

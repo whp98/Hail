@@ -6,19 +6,26 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.*
+import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.aistra.hail.HailApp
+import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
+import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
+import com.aistra.hail.databinding.DialogInputBinding
 import com.aistra.hail.utils.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 
 class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChangeListener,
@@ -50,7 +57,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
         }
         findPreference<Preference>(HailData.AUTO_FREEZE_AFTER_LOCK)?.setOnPreferenceChangeListener { _, autoFreezeAfterLock ->
             if (autoFreezeAfterLock == false) {
-                HailApp.app.setAutoFreezeService(false)
+                app.setAutoFreezeService(false)
             }
             true
         }
@@ -74,15 +81,15 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun iconPackDialog() {
         val list = Intent(Intent.ACTION_MAIN).addCategory("com.anddoes.launcher.THEME").let {
-            if (HTarget.T) HailApp.app.packageManager.queryIntentActivities(
+            if (HTarget.T) app.packageManager.queryIntentActivities(
                 it, PackageManager.ResolveInfoFlags.of(0)
-            ) else HailApp.app.packageManager.queryIntentActivities(it, 0)
+            ) else app.packageManager.queryIntentActivities(it, 0)
         }.map { it.activityInfo }
         MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.icon_pack)
-            .setItems(list.map { it.loadLabel(HailApp.app.packageManager) }
-                .toTypedArray()) { _, which ->
+            .setItems(list.map { it.loadLabel(app.packageManager) }.toTypedArray()) { _, which ->
                 if (HailData.iconPack == list[which].packageName) return@setItems
                 HailData.setIconPack(list[which].packageName)
                 AppIconCache.clear()
@@ -170,9 +177,9 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
         when {
             mode.startsWith(HailData.OWNER) -> if (!HPolicy.isDeviceOwnerActive) {
                 MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.title_set_owner)
-                    .setMessage(getString(R.string.msg_set_owner, HPolicy.ADB_SET_DO))
+                    .setMessage(getString(R.string.msg_set_owner, HPolicy.ADB_COMMAND))
                     .setPositiveButton(android.R.string.ok, null)
-                    .setNeutralButton(R.string.action_help) { _, _ -> HUI.openLink(HailData.URL_README) }
+                    .setNeutralButton(android.R.string.copy) { _, _ -> HUI.copyText(HPolicy.DPM_COMMAND) }
                     .show()
                 return false
             }
@@ -180,7 +187,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                 HUI.showToast(R.string.permission_denied)
                 return false
             }
-            mode.startsWith(HailData.SHIZUKU) -> return try {
+            mode.startsWith(HailData.SHIZUKU) -> return runCatching {
                 when {
                     Shizuku.isPreV11() -> throw IllegalStateException("unsupported shizuku version")
                     Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> true
@@ -196,8 +203,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                         true
                     }
                 }
-            } catch (t: Throwable) {
-                HLog.e(t)
+            }.getOrElse {
+                HLog.e(it)
                 HUI.showToast(R.string.shizuku_missing)
                 false
             }
@@ -205,8 +212,40 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
         return true
     }
 
+    private suspend fun onTerminalResult(exitValue: Int, msg: String?) =
+        withContext(Dispatchers.Main) {
+            if (exitValue == 0 && msg.isNullOrBlank()) return@withContext
+            MaterialAlertDialogBuilder(requireActivity()).apply {
+                if (!msg.isNullOrBlank()) {
+                    if (exitValue != 0) {
+                        setTitle(getString(R.string.operation_failed, exitValue.toString()))
+                    }
+                    setMessage(msg)
+                    setNeutralButton(android.R.string.copy) { _, _ -> HUI.copyText(msg) }
+                } else if (exitValue != 0) {
+                    setMessage(getString(R.string.operation_failed, exitValue.toString()))
+                }
+            }.setPositiveButton(android.R.string.ok, null).show()
+        }
+
     override fun onMenuItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_terminal -> {
+                val input =
+                    DialogInputBinding.inflate(layoutInflater, FrameLayout(requireActivity()), true)
+                input.inputLayout.setHint(R.string.action_terminal)
+                input.editText.run {
+                    setSingleLine()
+                    filters = arrayOf()
+                }
+                MaterialAlertDialogBuilder(requireActivity()).setView(input.root.parent as View)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        lifecycleScope.launch {
+                            val result = AppManager.execute(input.editText.text.toString())
+                            onTerminalResult(result.first, result.second)
+                        }
+                    }.setNegativeButton(android.R.string.cancel, null).show()
+            }
             R.id.action_help -> HUI.openLink(HailData.URL_README)
         }
         return false
@@ -214,5 +253,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
 
     override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_settings, menu)
+        if (HailData.workingMode.startsWith(HailData.SU) || HailData.workingMode.startsWith(HailData.SHIZUKU)) menu.findItem(
+            R.id.action_terminal
+        ).isVisible = true
     }
 }

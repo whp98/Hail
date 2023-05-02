@@ -3,7 +3,7 @@ package com.aistra.hail.app
 import android.provider.Settings
 import androidx.preference.PreferenceManager
 import com.aistra.hail.BuildConfig
-import com.aistra.hail.HailApp
+import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
 import com.aistra.hail.utils.HFiles
 import org.json.JSONArray
@@ -74,7 +74,7 @@ object HailData {
     const val SKIP_NOTIFYING_APP = "skip_notifying_app"
     private const val AUTO_FREEZE_DELAY = "auto_freeze_delay"
 
-    private val sp = PreferenceManager.getDefaultSharedPreferences(HailApp.app)
+    private val sp = PreferenceManager.getDefaultSharedPreferences(app)
     val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)!!
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
     val filterUserApps get() = sp.getBoolean(FILTER_USER_APPS, true)
@@ -84,7 +84,7 @@ object HailData {
     val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
     val grayscaleIcon get() = sp.getBoolean(GRAYSCALE_ICON, true)
     val compactIcon get() = sp.getBoolean(COMPACT_ICON, false)
-    val tileAction get() = sp.getString(TILE_ACTION, ACTION_FREEZE_ALL)
+    val tileAction get() = sp.getString(TILE_ACTION, ACTION_LOCK_FREEZE)
     val dynamicShortcutAction get() = sp.getString(DYNAMIC_SHORTCUT_ACTION, ACTION_NONE)!!
     val synthesizeAdaptiveIcons get() = sp.getBoolean(SYNTHESIZE_ADAPTIVE_ICONS, false)
     val autoFreezeAfterLock get() = sp.getBoolean(AUTO_FREEZE_AFTER_LOCK, false)
@@ -106,15 +106,15 @@ object HailData {
     fun setAid() = sp.edit().putString(KEY_AID, androidId).apply()
 
     private val androidId: String
-        get() = Settings.System.getString(HailApp.app.contentResolver, Settings.Secure.ANDROID_ID)
+        get() = Settings.System.getString(app.contentResolver, Settings.Secure.ANDROID_ID)
 
-    private val dir = "${HailApp.app.filesDir.path}/v1"
+    private val dir = "${app.filesDir.path}/v1"
     private val appsPath = "$dir/apps.json"
     private val tagsPath = "$dir/tags.json"
 
     val checkedList: MutableList<AppInfo> by lazy {
         mutableListOf<AppInfo>().apply {
-            try {
+            runCatching {
                 val json = JSONArray(HFiles.read(appsPath))
                 for (i in 0 until json.length()) {
                     add(with(json.getJSONObject(i)) {
@@ -126,27 +126,19 @@ object HailData {
                         )
                     })
                 }
-            } catch (_: Throwable) {
             }
         }
     }
 
-    private fun getCheckedPosition(packageName: String): Int {
-        checkedList.forEachIndexed { position, info ->
-            if (info.packageName == packageName) return position
-        }
-        return -1
-    }
+    fun isChecked(packageName: String): Boolean = checkedList.any { it.packageName == packageName }
 
-    fun isChecked(packageName: String): Boolean = getCheckedPosition(packageName) != -1
-
-    fun addCheckedApp(packageName: String, saveApps: Boolean = true) {
-        checkedList.add(AppInfo(packageName, false, 0, false))
+    fun addCheckedApp(packageName: String, saveApps: Boolean = true, tagId: Int = 0) {
+        checkedList.add(AppInfo(packageName, false, tagId, false))
         if (saveApps) saveApps()
     }
 
     fun removeCheckedApp(packageName: String, saveApps: Boolean = true) {
-        checkedList.removeAt(getCheckedPosition(packageName))
+        checkedList.removeAll { it.packageName == packageName }
         if (saveApps) saveApps()
     }
 
@@ -165,24 +157,15 @@ object HailData {
 
     val tags: MutableList<Pair<String, Int>> by lazy {
         mutableListOf<Pair<String, Int>>().apply {
-            try {
+            runCatching {
                 val json = JSONArray(HFiles.read(tagsPath))
                 for (i in 0 until json.length()) {
                     add(with(json.getJSONObject(i)) { getString(KEY_TAG) to getInt(KEY_ID) })
                 }
-            } catch (t: Throwable) {
-                add(HailApp.app.getString(R.string.label_default) to 0)
+            }.onFailure {
+                add(app.getString(R.string.label_default) to 0)
             }
         }
-    }
-
-    fun isTagAvailable(tagName: String): Boolean = getTagPosition(tagName) != -1
-
-    fun getTagPosition(tagName: String): Int {
-        tags.forEachIndexed { position, tag ->
-            if (tag.first == tagName) return position
-        }
-        return -1
     }
 
     fun saveTags() {
