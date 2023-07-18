@@ -51,14 +51,9 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-                    when (errorCode) {
-                        BiometricPrompt.ERROR_NO_BIOMETRICS, BiometricPrompt.ERROR_HW_NOT_PRESENT -> unlock()
-                        BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_USER_CANCELED -> finishAndRemoveTask()
-                        else -> {
-                            HUI.showToast(errString)
-                            finishAndRemoveTask()
-                        }
-                    }
+                    HUI.showToast(errString)
+                    if (errorCode == BiometricPrompt.ERROR_NO_BIOMETRICS) unlock()
+                    else finishAndRemoveTask()
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {

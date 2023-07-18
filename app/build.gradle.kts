@@ -66,7 +66,7 @@ android {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.2")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.biometric:biometric:1.1.0")
@@ -77,8 +77,9 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.work:work-runtime-ktx:2.8.0")
     implementation("com.google.android.material:material:1.8.0")
-    implementation("dev.rikka.shizuku:api:13.1.1")
-    implementation("dev.rikka.shizuku:provider:13.1.1")
+    implementation("dev.rikka.shizuku:api:13.1.4")
+    implementation("dev.rikka.shizuku:provider:13.1.4")
+    implementation("io.github.iamr0s:Dhizuku-API:2.4")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.5.0")
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
     implementation("com.belerweb:pinyin4j:2.5.1")

@@ -51,8 +51,8 @@
     <string name="title_set_owner">Establecer el administrador de dispositivo</string>
     <string name="msg_set_owner">Emitir el comando desde adb:\n%s</string>
     <string name="title_remove_owner">Elminar el administrador de dispositivo</string>
-    <string name="msg_remove_owner">Se eliminará el propietario del dispositivo, puede ser difícil configurarlo nuevamente después de la eliminación.
-\nLas aplicaciones congeladas permanecerán congeladas después de la eliminación, asegúrete de haber descongelado las aplicaciones importantes.</string>
+    <string name="msg_remove_owner">Si se elimina Hail como propietario del dispositivo, puede haber dificultades para reorganizar las aplicaciones después de la eliminación de Hail.
+\nLas aplicaciones congeladas permanecerán congeladas después de la eliminación, por favor asegúrese de que ha descongelado las aplicaciones importantes.</string>
     <string name="tap_to_select">Pulse para multiseleccionar</string>
     <string name="filter_by">Filtro</string>
     <string name="filter_user_apps">Usuario</string>
@@ -67,10 +67,10 @@
     <string name="donate_alipay">Alipay</string>
     <string name="donate_wechat">WeChat Pay</string>
     <string name="donate_wechat_scan">Escanear</string>
-    <string name="donate_bilibili">bilibili</string>
-    <string name="donate_bilibili_msg">Sigueme en bilibili.</string>
-    <string name="donate_bilibili_space">My space</string>
-    <string name="donate_bilibili_cancel">@android:string/cancel</string>
+    <string name="donate_bilibili">Bilibili</string>
+    <string name="donate_bilibili_msg">Sígueme en Bilibili.</string>
+    <string name="donate_bilibili_space">Espacio en Bilibili</string>
+    <string name="donate_bilibili_cancel">Cancelar</string>
     <string name="donate_liberapay">Liberapay</string>
     <string name="donate_paypal">PayPal</string>
     <string name="msg_redeem">¡Gracias!</string>
@@ -110,7 +110,7 @@
     <string name="grayscale_icon">Iconos en escala de grises</string>
     <string name="compact_icon">Iconos compacto</string>
     <string name="action_biometric">Inicio de sesión biométrico</string>
-    <string name="msg_biometric">Inicie sesión con su identificación biométrica</string>
+    <string name="msg_biometric">Regístrate con tu identificación biométrica</string>
     <string name="action_pin">Fijar</string>
     <string name="action_unpin">Desfijar</string>
     <string name="nothing_here">Nada por aquí</string>
@@ -138,4 +138,6 @@
     <string name="icon_pack">Paquete de iconos</string>
     <string name="action_select_all">Seleccionar todo</string>
     <string name="action_terminal">Terminal</string>
+    <string name="mode_dhizuku_hide">Dhizuku - Ocultar</string>
+    <string name="mode_dhizuku_suspend">Dhizuku - Suspender</string>
 </resources>
