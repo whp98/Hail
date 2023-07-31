@@ -117,8 +117,7 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener,
         if (query.isEmpty()) it.tagId == tag.second
         else (it.packageName.contains(query, true)
                 || it.name.contains(query, true)
-                || PinyinSearch.searchCap(it.name.toString(), query)
-                || PinyinSearch.searchAllSpell(it.name.toString(), query))
+                || PinyinSearch.searchPinyinAll(it.name.toString(), query))
     }.sortedWith(NameComparator).let {
         binding.empty.isVisible = it.isEmpty()
         pagerAdapter.submitList(it)

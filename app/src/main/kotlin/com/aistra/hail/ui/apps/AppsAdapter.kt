@@ -55,8 +55,7 @@ object AppsAdapter :
 
                         && (query.isNullOrEmpty() || it.packageName.contains(query, true)
                         || it.applicationInfo.loadLabel(pm).toString().contains(query, true)
-                        || PinyinSearch.searchCap(it.applicationInfo.loadLabel(pm).toString(), query)
-                        || PinyinSearch.searchAllSpell(it.applicationInfo.loadLabel(pm).toString(), query)
+                        || PinyinSearch.searchPinyinAll(it.applicationInfo.loadLabel(pm).toString(), query)
                         )
             }.run {
                 when (HailData.sortBy) {
