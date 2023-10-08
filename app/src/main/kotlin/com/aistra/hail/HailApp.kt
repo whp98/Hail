@@ -9,7 +9,6 @@ import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailData
 import com.aistra.hail.services.AutoFreezeService
 import com.aistra.hail.utils.HDhizuku
-import com.google.android.material.color.DynamicColors
 
 class HailApp : Application() {
     override fun onCreate() {
@@ -22,21 +21,28 @@ class HailApp : Application() {
 
     fun setAutoFreezeService(enabled: Boolean? = null) {
         if (HailData.autoFreezeAfterLock.not()) return
-        val start = enabled
-            ?: HailData.checkedList.any { !AppManager.isAppFrozen(it.packageName) && !it.whitelisted }
+        val start = enabled ?: HailData.checkedList.any {
+            it.packageName != packageName
+                    && it.applicationInfo != null
+                    && !AppManager.isAppFrozen(it.packageName)
+                    && !it.whitelisted
+        }
         val intent = Intent(app, AutoFreezeService::class.java)
-        val name = ComponentName(app, AutoFreezeService::class.java)
         if (start) {
-            packageManager.setComponentEnabledSetting(
-                name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP
-            )
+            setAutoFreezeServiceEnabled(true)
             ContextCompat.startForegroundService(app, intent)
         } else {
             stopService(intent)
-            packageManager.setComponentEnabledSetting(
-                name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP
-            )
+            setAutoFreezeServiceEnabled(false)
         }
+    }
+
+    fun setAutoFreezeServiceEnabled(enabled: Boolean) {
+        packageManager.setComponentEnabledSetting(
+            ComponentName(app, AutoFreezeService::class.java),
+            if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP
+        )
     }
 
     companion object {

@@ -12,7 +12,10 @@ object PinyinSearch {
      * @param textToSearch 需要匹配的字符串
      * @param textInput 用户输入
      * */
-    fun searchPinyinAll(textToSearch: String, textInput: String): Boolean {
+    fun searchPinyinAll(textToSearch: String?, textInput: String): Boolean {
+        if (textToSearch==null){
+            return false
+        }
         val language = Locale.getDefault().language
         return if (language.equals(Locale.CHINESE.language)) {
             searchCap(textToSearch, textInput) || searchAllSpell(textToSearch, textInput)

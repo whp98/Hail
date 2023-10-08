@@ -1,6 +1,6 @@
 package com.aistra.hail.ui.apps
 
-import android.content.pm.PackageInfo
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -43,6 +43,8 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
         return SwipeRefreshLayout(activity).apply {
             refreshLayout = this
             addView(RecyclerView(activity).apply {
+                activity.appbar.setLiftOnScrollTargetView(this)
+
                 layoutManager =
                     GridLayoutManager(activity, resources.getInteger(R.integer.apps_span))
                 adapter = AppsAdapter.apply {
@@ -64,8 +66,8 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
         buttonView.toggle()
     }
 
-    override fun onItemLongClick(info: PackageInfo): Boolean = true.also {
-        val name = info.applicationInfo.loadLabel(app.packageManager)
+    override fun onItemLongClick(info: ApplicationInfo): Boolean = true.also {
+        val name = info.loadLabel(app.packageManager)
         val pkg = info.packageName
         MaterialAlertDialogBuilder(activity).setTitle(name)
             .setItems(resources.getStringArray(R.array.apps_action_entries)) { _, which ->
@@ -84,14 +86,14 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
                             MaterialAlertDialogBuilder(activity).setView(R.layout.dialog_progress)
                                 .setCancelable(false).create()
                         dialog.show()
-                        val target = "${HFiles.DIR_OUTPUT}/$name-${info.versionName}-${
-                            PackageInfoCompat.getLongVersionCode(info)
+                        val target = "${HFiles.DIR_OUTPUT}/$name-${
+                            HPackages.getUnhiddenPackageInfoOrNull(pkg)?.versionName ?: "unknown"
+                        }-${
+                            HPackages.getUnhiddenPackageInfoOrNull(pkg)
+                                ?.let { PackageInfoCompat.getLongVersionCode(it) } ?: 0
                         }.apk"
                         HUI.showToast(
-                            if (HFiles.copy(
-                                    info.applicationInfo.sourceDir, target
-                                )
-                            ) R.string.msg_extract_apk
+                            if (HFiles.copy(info.sourceDir, target)) R.string.msg_extract_apk
                             else R.string.operation_failed, target, true
                         )
                         dialog.dismiss()
@@ -100,15 +102,7 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener,
                     3 -> when {
                         pkg == app.packageName -> {
                             when {
-                                HPolicy.isDeviceOwnerActive -> MaterialAlertDialogBuilder(activity).setTitle(
-                                    R.string.title_remove_owner
-                                ).setMessage(R.string.msg_remove_owner)
-                                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                                        HPolicy.setOrganizationName()
-                                        HPolicy.clearDeviceOwnerApp()
-                                        uninstallDialog(name, pkg)
-                                    }.setNegativeButton(android.R.string.cancel, null).show()
-
+                                HPolicy.isDeviceOwnerActive -> activity.ownerRemoveDialog()
                                 HPolicy.isAdminActive -> {
                                     HPolicy.removeActiveAdmin()
                                     uninstallDialog(name, pkg)

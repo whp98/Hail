@@ -11,7 +11,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -19,12 +19,15 @@ import androidx.navigation.ui.setupWithNavController
 import com.aistra.hail.R
 import com.aistra.hail.app.HailData
 import com.aistra.hail.databinding.ActivityMainBinding
+import com.aistra.hail.utils.HPolicy
 import com.aistra.hail.utils.HUI
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedListener {
     lateinit var fab: ExtendedFloatingActionButton
+    lateinit var appbar: AppBarLayout
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
 
@@ -68,7 +71,11 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         setContentView(root)
         setSupportActionBar(appBarMain.toolbar)
         fab = appBarMain.fab
-        navController = findNavController(R.id.nav_host_fragment)
+        appbar = appBarMain.appBarLayout
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
         navController.addOnDestinationChangedListener(this@MainActivity)
         appBarConfiguration = AppBarConfiguration.Builder(
             R.id.nav_home, R.id.nav_apps, R.id.nav_settings, R.id.nav_about
@@ -106,6 +113,15 @@ class MainActivity : AppCompatActivity(), NavController.OnDestinationChangedList
         else MaterialAlertDialogBuilder(this).setMessage(R.string.msg_guide)
             .setPositiveButton(android.R.string.ok) { _, _ -> HailData.setGuideVersion() }
             .setOnDismissListener { HailData.setGuideVersion() }.show()
+    }
+
+    fun ownerRemoveDialog() {
+        MaterialAlertDialogBuilder(this).setTitle(R.string.title_remove_owner)
+            .setMessage(R.string.msg_remove_owner)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                HPolicy.setOrganizationName()
+                HPolicy.clearDeviceOwnerApp()
+            }.setNegativeButton(android.R.string.cancel, null).show()
     }
 
     override fun onStop() {

@@ -21,8 +21,10 @@ import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
 import com.aistra.hail.databinding.DialogInputBinding
+import com.aistra.hail.ui.main.MainActivity
 import com.aistra.hail.utils.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textview.MaterialTextView
 import com.rosan.dhizuku.api.Dhizuku
 import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +44,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
     ): View {
         val menuHost = requireActivity() as MenuHost
         menuHost.addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        (requireActivity() as MainActivity).appbar.liftOnScrollTargetViewId = R.id.recycler_view
+
         return super.onCreateView(inflater, container, savedInstanceState)
     }
 
@@ -58,6 +62,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
             val isGranted = NotificationManagerCompat.getEnabledListenerPackages(requireContext())
                 .contains(requireContext().packageName)
             if (value == true && !isGranted) {
+                app.setAutoFreezeServiceEnabled(true)
                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 false
             } else true
@@ -95,6 +100,10 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                 it, PackageManager.ResolveInfoFlags.of(0)
             ) else app.packageManager.queryIntentActivities(it, 0)
         }.map { it.activityInfo }
+        if (list.isEmpty()) {
+            HUI.showToast(R.string.app_not_installed)
+            return
+        }
         MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.icon_pack)
             .setItems(list.map { it.loadLabel(app.packageManager) }.toTypedArray()) { _, which ->
                 if (HailData.iconPack == list[which].packageName) return@setItems
@@ -186,14 +195,17 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
     }
 
     override fun onPreferenceChange(preference: Preference, newValue: Any): Boolean {
+        // Show/hide terminal menu.
+        activity?.invalidateOptionsMenu()
         val mode = newValue as String
         when {
             mode.startsWith(HailData.OWNER) -> if (!HPolicy.isDeviceOwnerActive) {
                 MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.title_set_owner)
                     .setMessage(getString(R.string.msg_set_owner, HPolicy.ADB_COMMAND))
                     .setPositiveButton(android.R.string.ok, null)
-                    .setNeutralButton(android.R.string.copy) { _, _ -> HUI.copyText(HPolicy.DPM_COMMAND) }
+                    .setNeutralButton(android.R.string.copy) { _, _ -> HUI.copyText(HPolicy.ADB_COMMAND) }
                     .show()
+                    .findViewById<MaterialTextView>(android.R.id.message)?.setTextIsSelectable(true)
                 return false
             }
 
@@ -266,6 +278,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                 false
             }
         }
+
         return true
     }
 
@@ -283,6 +296,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                     setMessage(getString(R.string.operation_failed, exitValue.toString()))
                 }
             }.setPositiveButton(android.R.string.ok, null).show()
+                .findViewById<MaterialTextView>(android.R.id.message)?.setTextIsSelectable(true)
         }
 
     override fun onMenuItemSelected(item: MenuItem): Boolean {
@@ -304,6 +318,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
                     }.setNegativeButton(android.R.string.cancel, null).show()
             }
 
+            R.id.action_remove_owner -> (requireActivity() as MainActivity).ownerRemoveDialog()
             R.id.action_help -> HUI.openLink(HailData.URL_README)
         }
         return false
@@ -311,8 +326,13 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChan
 
     override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_settings, menu)
-        if (HailData.workingMode.startsWith(HailData.SU) || HailData.workingMode.startsWith(HailData.SHIZUKU)) menu.findItem(
-            R.id.action_terminal
-        ).isVisible = true
+    }
+
+    override fun onPrepareMenu(menu: Menu) {
+        super.onPrepareMenu(menu)
+        if (HailData.workingMode.startsWith(HailData.SU) || HailData.workingMode.startsWith(HailData.SHIZUKU))
+            menu.findItem(R.id.action_terminal).isVisible = true
+        else if (HPolicy.isDeviceOwnerActive)
+            menu.findItem(R.id.action_remove_owner).isVisible = true
     }
 }

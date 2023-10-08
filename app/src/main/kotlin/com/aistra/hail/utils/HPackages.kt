@@ -1,7 +1,6 @@
 package com.aistra.hail.utils
 
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.aistra.hail.HailApp.Companion.app
 
@@ -11,16 +10,14 @@ object HPackages {
     fun packageUri(packageName: String) = "package:$packageName"
 
     @Suppress("DEPRECATION")
-    fun getInstalledPackages(flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES): List<PackageInfo> =
-        if (HTarget.T) app.packageManager.getInstalledPackages(
-            PackageManager.PackageInfoFlags.of(
-                flags.toLong()
-            )
+    fun getInstalledApplications(flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES): List<ApplicationInfo> =
+        if (HTarget.T) app.packageManager.getInstalledApplications(
+            PackageManager.ApplicationInfoFlags.of(flags.toLong())
         )
-        else app.packageManager.getInstalledPackages(flags)
+        else app.packageManager.getInstalledApplications(flags)
 
     @Suppress("DEPRECATION")
-    fun getPackageInfoOrNull(
+    fun getUnhiddenPackageInfoOrNull(
         packageName: String, flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES
     ) = runCatching {
         if (HTarget.T) app.packageManager.getPackageInfo(
@@ -31,16 +28,24 @@ object HPackages {
 
     fun getApplicationInfoOrNull(
         packageName: String, flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES
-    ) = getPackageInfoOrNull(packageName, flags)?.applicationInfo
+    ) = runCatching {
+        if (HTarget.T) app.packageManager.getApplicationInfo(
+            packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong())
+        )
+        else app.packageManager.getApplicationInfo(packageName, flags)
+    }.getOrNull()
 
     fun isAppDisabled(packageName: String): Boolean =
         getApplicationInfoOrNull(packageName)?.enabled?.not() ?: false
 
-    fun isAppSuspended(packageName: String): Boolean = getPackageInfoOrNull(packageName)?.let {
-        val pm = app.packageManager
+    fun isAppHidden(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
+        (ApplicationInfo::class.java.getField("privateFlags").get(it) as Int) and 1 == 1
+    } ?: false
+
+    fun isAppSuspended(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
         when {
-            HTarget.Q -> pm.isPackageSuspended(packageName)
-            HTarget.N -> it.applicationInfo.flags and ApplicationInfo.FLAG_SUSPENDED == ApplicationInfo.FLAG_SUSPENDED
+            HTarget.Q -> app.packageManager.isPackageSuspended(packageName)
+            HTarget.N -> it.flags and ApplicationInfo.FLAG_SUSPENDED == ApplicationInfo.FLAG_SUSPENDED
             else -> false
         }
     } ?: false

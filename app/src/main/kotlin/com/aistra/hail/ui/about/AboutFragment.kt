@@ -29,6 +29,8 @@ class AboutFragment : MainFragment(), View.OnClickListener {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAboutBinding.inflate(inflater, container, false)
+        activity.appbar.setLiftOnScrollTargetView(binding.root)
+
         binding.descVersion.text = HailData.VERSION
         aboutViewModel = ViewModelProvider(this)[AboutViewModel::class.java]
         aboutViewModel.time.observe(viewLifecycleOwner) {
@@ -45,7 +47,7 @@ class AboutFragment : MainFragment(), View.OnClickListener {
         binding.actionTime.setOnClickListener(this)
         binding.actionTelegram.setOnClickListener(this)
         binding.actionQq.setOnClickListener(this)
-        binding.actionCoolapk.setOnClickListener(this)
+        binding.actionFdroid.setOnClickListener(this)
         binding.actionDonate.setOnClickListener(this)
         binding.actionGithub.setOnClickListener(this)
         binding.actionTranslate.setOnClickListener(this)
@@ -60,7 +62,7 @@ class AboutFragment : MainFragment(), View.OnClickListener {
             binding.actionTime -> onRedeem()
             binding.actionTelegram -> HUI.openLink(HailData.URL_TELEGRAM)
             binding.actionQq -> HUI.openLink(HailData.URL_QQ)
-            binding.actionCoolapk -> HUI.openLink(HailData.URL_COOLAPK)
+            binding.actionFdroid -> HUI.openLink(HailData.URL_FDROID)
             binding.actionDonate -> onDonate()
             binding.actionGithub -> HUI.openLink(HailData.URL_GITHUB)
             binding.actionTranslate -> HUI.openLink(HailData.URL_TRANSLATE)
