@@ -39,7 +39,8 @@ Hidden apps will not be shown in the launcher and installed apps list. Unhide th
 Suspended apps will be shown as grayscale icons in the launcher. Unsuspend them to revert.
 
 > While in this state, the application's notifications will be hidden, any of its started activities
-> will be stopped and it will not be able to show toasts or dialogs or play audio. When the user tries
+> will be stopped and it will not be able to show toasts or dialogs or play audio. When the user
+> tries
 > to launch a suspended app, the system will, instead, show a dialog to the user informing them that
 > they cannot use this app while it is suspended.
 
