@@ -117,11 +117,9 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener,
 
     private fun updateCurrentList() = HailData.checkedList.filter {
         if (query.isEmpty()) it.tagId == tag.second
-        else (it.packageName.contains(query, true)
-                || it.name.contains(query, true)
-                || PinyinSearch.searchPinyinAll(it.name.toString(), query)
+        else (FuzzySearch.search(it.packageName, query)
                 || FuzzySearch.search(it.name.toString(), query)
-                )
+                || PinyinSearch.searchPinyinAll(it.name.toString(), query))
     }.sortedWith(NameComparator).let {
         binding.empty.isVisible = it.isEmpty()
         pagerAdapter.submitList(it)

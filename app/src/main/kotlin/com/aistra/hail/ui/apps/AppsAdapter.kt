@@ -60,11 +60,9 @@ object AppsAdapter :
                         && ((HailData.filterFrozenApps && AppManager.isAppFrozen(it.packageName))
                         || (HailData.filterUnfrozenApps && !AppManager.isAppFrozen(it.packageName)))
 
-                        && (query.isNullOrEmpty()
-                        || it.packageName.contains(query, true)
-                        || it.loadLabel(pm).toString().contains(query, true)
-                        || PinyinSearch.searchPinyinAll(it.loadLabel(pm).toString(), query)
-                        || FuzzySearch.search(it.loadLabel(pm).toString(), query))
+                        && (FuzzySearch.search(it.packageName, query)
+                        || FuzzySearch.search(it.loadLabel(pm).toString(), query)
+                        || PinyinSearch.searchPinyinAll(it.loadLabel(pm).toString(), query))
             }.run {
                 when (HailData.sortBy) {
                     HailData.SORT_INSTALL -> sortedBy {
