@@ -30,4 +30,14 @@ object FuzzySearch {
         // 使用交集操作，如果charSet2中的所有字符都在charSet1中，返回true
         return charSet1.containsAll(charSet2)
     }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val testResult1 = search("支付宝","支")
+        assert(testResult1)
+        val testResult2 = search("World Peace","wp")
+        assert(testResult2)
+        val testResult3 = search("World Peace","pee")
+        assert(testResult3)
+    }
 }
