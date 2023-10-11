@@ -16,6 +16,7 @@ import com.aistra.hail.R
 import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailData
 import com.aistra.hail.utils.AppIconCache
+import com.aistra.hail.utils.FuzzySearch
 import com.aistra.hail.utils.HPackages
 import com.aistra.hail.utils.NameComparator
 import com.aistra.hail.utils.PinyinSearch
@@ -62,7 +63,8 @@ object AppsAdapter :
                         && (query.isNullOrEmpty()
                         || it.packageName.contains(query, true)
                         || it.loadLabel(pm).toString().contains(query, true)
-                        || PinyinSearch.searchPinyinAll(it.loadLabel(pm).toString(), query))
+                        || PinyinSearch.searchPinyinAll(it.loadLabel(pm).toString(), query)
+                        || FuzzySearch.search(it.loadLabel(pm).toString(), query))
             }.run {
                 when (HailData.sortBy) {
                     HailData.SORT_INSTALL -> sortedBy {
